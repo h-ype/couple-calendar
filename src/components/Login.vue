@@ -21,11 +21,16 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { signInWithEmailAndPassword } from 'firebase/auth'
-import { auth } from '../firebase'
+import { auth, db } from '../firebase'
+import { doc, getDoc } from 'firebase/firestore'
+import { user as userStore } from '../stores/user'
 
+
+const store = userStore()
 const router = useRouter()
+const route = useRoute()
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
@@ -36,8 +41,21 @@ async function login() {
   loading.value = true
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value)
-    console.log('로그인 성공:', userCredential.user)
-    // 로그인 성공 후 원하는 페이지로 이동 가능
+
+    
+store.setUser(result.user)
+// Firestore에서 calendarName 가져오기
+const userDocRef = doc(db, 'users', result.user.uid)
+const snap = await getDoc(userDocRef)
+if (snap.exists()) {
+  const data = snap.data()
+  if (data.calendarName) {
+    store.setCalendarName(data.calendarName)
+  }
+}
+    
+    const redirectPath = route.query.redirect || '/'
+    router.push(redirectPath) // ✅ 로그인 성공 후 이전 경로로 이동
   } catch (e) {
     error.value = e.message
   } finally {

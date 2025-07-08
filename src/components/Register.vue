@@ -34,9 +34,7 @@ async function register() {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value)
     console.log('회원가입 성공:', userCredential.user)
-    // 성공하면 초기화하거나 원하는 페이지로 이동 가능
-    email.value = ''
-    password.value = ''
+    router.push('/')
   } catch (e) {
     error.value = e.message
   } finally {

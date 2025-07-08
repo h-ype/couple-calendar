@@ -114,7 +114,7 @@ function nextMonth() {
 
 <style scoped>
 .calendar {
-  width: 320px;
+  width: 100%;
   margin: auto;
   font-family: 'Noto Sans KR', sans-serif;
 }

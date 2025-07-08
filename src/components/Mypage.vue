@@ -6,16 +6,24 @@
       <li @click="goTo('invite')">커플 초대</li>
       <li @click="goTo('anniversary')">기념일 확인</li>
     </ul>
+    <button class="logout-btn" @click="logout">로그아웃</button>
   </div>
 </template>
 
 <script setup>
 import { useRouter } from 'vue-router'
+import { getAuth, signOut } from 'firebase/auth'
 
 const router = useRouter()
+const auth = getAuth()
 
 function goTo(page) {
   router.push(`/mypage/${page}`)
+}
+function logout() {
+  signOut(auth).then(() => {
+    router.push('/')
+  })
 }
 </script>
 

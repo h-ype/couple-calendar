@@ -1,25 +1,37 @@
 <template>
   <header class="header">
-    <button class="menu-btn" @click="onMenuClick">☰</button>
 
-    <div class="logo">서린계피 커플캘린더</div>
+    <div class="logo" @click="goMain">{{ calendarName }}</div>
 
      <div>
     <button v-if="!user" @click="goLogin">로그인</button>
     <div v-else class="mypage" @click="goMyPage">
-      <img :src="user.photoURL || defaultPhoto" alt="My Page" class="mypage-img" />
+      <img :src="photoURL || defaultPhoto" alt="My Page" class="mypage-img" />
     </div>
   </div>
   </header>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { user } from '../stores/user'
+import { ref, onMounted  } from 'vue'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import { user, calendarName, photoURL, loadUserData } from '../stores/user'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const defaultPhoto = '/default-profile.png' 
+
+
+onMounted(() => {
+  const auth = getAuth()
+  onAuthStateChanged(auth, async (firebaseUser) => {
+    await loadUserData(firebaseUser)
+  })
+})
+
+function goMain() {
+  router.push('/')
+}
 
 function goLogin() {
   router.push('/login')
@@ -29,20 +41,16 @@ function goMyPage() {
   router.push('/mypage')
 }
 
-// 버튼 클릭 이벤트 핸들러 (필요에 따라 구현)
-function onMenuClick() {
-  alert('메뉴 버튼 클릭됨')
-}
- 
-
 </script>
 
 <style scoped>
 .header {
   display: flex;
+  width: 100%;
   align-items: center;
   justify-content: space-between;
   padding: 0.5rem 1rem;
+  box-sizing: border-box;
   background-color: #f8f8f8;
   box-shadow: 0 2px 4px rgb(0 0 0 / 0.1);
 }
