@@ -21,7 +21,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { user, calendarName as calendarStore } from '../stores/user'
+import { useUserStore } from '../stores/user'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore'
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
@@ -29,62 +29,77 @@ import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'fire
 const auth = getAuth()
 const db = getFirestore()
 const storage = getStorage()
+const userStore = useUserStore()
 
-const nickname = ref('')
-const isSaving = ref(false) 
-const calendarName = ref('')
+const isSaving = ref(false)
 const file = ref(null)
-const previewUrl = ref(null)
+const nickname = ref('')
+const calendarName = ref('')
+const previewUrl = ref('')
 
 onMounted(() => {
   onAuthStateChanged(auth, (u) => {
     if (u) {
-      user.value = u
+      userStore.user = u
       loadUserInfo()
     }
   })
 })
 
+// Firestore에서 내 정보 불러와서 컴포넌트와 store 모두 반영
 async function loadUserInfo() {
-  const docRef = doc(db, 'users', user.value.uid)
+  if (!userStore.user) return
+
+  const docRef = doc(db, 'users', userStore.user.uid)
   const snap = await getDoc(docRef)
   if (snap.exists()) {
     const data = snap.data()
-    nickname.value = data.nickname || ''
-    calendarName.value = data.calendarName || ''
-    previewUrl.value = data.photoURL || null
+    // store에도 저장
+    userStore.nickname = data.nickname || ''
+    userStore.calendarName = data.calendarName || ''
+    userStore.photoURL = data.photoURL || ''
+    // 컴포넌트에도 저장
+    nickname.value = userStore.nickname
+    calendarName.value = userStore.calendarName
+    previewUrl.value = userStore.photoURL
   }
 }
 
 function onFileChange(e) {
   file.value = e.target.files[0]
-  previewUrl.value = URL.createObjectURL(file.value)
+  if (file.value) {
+    previewUrl.value = URL.createObjectURL(file.value)
+  }
 }
 
 async function saveProfile() {
-  if (!user.value) return
+  if (!userStore.user) return
 
-  let photoURL = previewUrl.value
+  let photoURL = userStore.photoURL
 
   try {
     isSaving.value = true
 
+    // 사진이 새로 선택된 경우 업로드
     if (file.value) {
-      const fileRef = storageRef(storage, `profileImages/${user.value.uid}`)
+      const fileRef = storageRef(storage, `profileImages/${userStore.user.uid}`)
       await uploadBytes(fileRef, file.value)
       photoURL = await getDownloadURL(fileRef)
     }
 
-    const userDoc = doc(db, 'users', user.value.uid)
+    // Firestore에 저장
+    const userDoc = doc(db, 'users', userStore.user.uid)
     await setDoc(userDoc, {
       nickname: nickname.value,
       calendarName: calendarName.value,
       photoURL
     })
 
-    // 🔄 header 이미지 갱신을 위해 store 업데이트
-    user.value.photoURL = photoURL
-    calendarStore.value = calendarName.value
+    // store 및 미리보기 상태 동기화
+    userStore.nickname = nickname.value
+    userStore.calendarName = calendarName.value
+    userStore.photoURL = photoURL
+    previewUrl.value = photoURL
 
     alert('저장 완료!')
   } catch (error) {
@@ -95,6 +110,7 @@ async function saveProfile() {
   }
 }
 </script>
+
 
 <style scoped>
 form {

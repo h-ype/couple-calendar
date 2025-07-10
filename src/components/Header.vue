@@ -1,12 +1,12 @@
 <template>
   <header class="header">
 
-    <div class="logo" @click="goMain">{{ calendarName }}</div>
+    <div class="logo" @click="goMain">{{ userStore.calendarName }}</div>
 
      <div>
-    <button v-if="!user" @click="goLogin">로그인</button>
+    <button v-if="!userStore.user" @click="goLogin">로그인</button>
     <div v-else class="mypage" @click="goMyPage">
-      <img :src="photoURL || defaultPhoto" alt="My Page" class="mypage-img" />
+      <img :src="userStore.photoURL || defaultPhoto" alt="My Page" class="mypage-img" />
     </div>
   </div>
   </header>
@@ -15,17 +15,18 @@
 <script setup>
 import { ref, onMounted  } from 'vue'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
-import { user, calendarName, photoURL, loadUserData } from '../stores/user'
+import { useUserStore } from '../stores/user'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const defaultPhoto = '/default-profile.png' 
+const userStore = useUserStore()
 
 
 onMounted(() => {
   const auth = getAuth()
   onAuthStateChanged(auth, async (firebaseUser) => {
-    await loadUserData(firebaseUser)
+    await userStore.loadUserData(firebaseUser)
   })
 })
 

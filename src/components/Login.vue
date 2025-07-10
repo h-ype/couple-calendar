@@ -25,37 +25,33 @@ import { useRouter, useRoute } from 'vue-router'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { auth, db } from '../firebase'
 import { doc, getDoc } from 'firebase/firestore'
-import { user as userStore } from '../stores/user'
+import { useUserStore } from '../stores/user'
 
 
-const store = userStore()
 const router = useRouter()
 const route = useRoute()
+
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
 const error = ref(null)
 
+const userStore = useUserStore()
+
+
 async function login() {
   error.value = null
   loading.value = true
-  try {
+   try {
     const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value)
 
-    
-store.setUser(result.user)
-// Firestore에서 calendarName 가져오기
-const userDocRef = doc(db, 'users', result.user.uid)
-const snap = await getDoc(userDocRef)
-if (snap.exists()) {
-  const data = snap.data()
-  if (data.calendarName) {
-    store.setCalendarName(data.calendarName)
-  }
-}
-    
+    // 🔥 로그인한 사용자 정보를 스토어에 반영
+    await userStore.loadUserData(userCredential.user)
+
+    // ✅ 로그인 성공 후 이전 경로 또는 메인으로 이동
     const redirectPath = route.query.redirect || '/'
-    router.push(redirectPath) // ✅ 로그인 성공 후 이전 경로로 이동
+    router.push(redirectPath)
+
   } catch (e) {
     error.value = e.message
   } finally {

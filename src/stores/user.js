@@ -1,36 +1,39 @@
+import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { getFirestore, doc, getDoc } from 'firebase/firestore'
 
-// 로그인 상태 저장
-export const user = ref(null)
-
-// 캘린더 이름 초기값
-export const nickname = ref('')
-export const calendarName = ref('내 캘린더')
-export const photoURL = ref('')
-
-// 로그인 후 사용자 정보 가져와 calendarName 설정
-export async function loadUserData(firebaseUser) {
-  user.value = firebaseUser
-
-  if (!firebaseUser) {
-    nickname.value = ''
-    calendarName.value = '내 캘린더'
-    photoURL.value = ''
-    return
-  }
-
+async function fetchUserData(uid) {
   const db = getFirestore()
-  const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid))
-
-  if (userDoc.exists()) {
-    const data = userDoc.data()
-    nickname.value = data.nickname || ''
-    calendarName.value = data.calendarName || '내 캘린더'
-    photoURL.value = data.photoURL || ''
+  const docRef = doc(db, 'users', uid)
+  const docSnap = await getDoc(docRef)
+  if (docSnap.exists()) {
+    return docSnap.data()
   } else {
-    nickname.value = ''
-    calendarName.value = '내 캘린더'
-    photoURL.value = ''
+    return { calendarName: '', photoURL: '' }
   }
 }
+
+export const useUserStore = defineStore('user', () => {
+  const user = ref(null) // 추가
+  const nickname = ref('')
+  const calendarName = ref(localStorage.getItem('calendarName') || '')
+  const photoURL = ref(localStorage.getItem('photoURL') || '')
+
+  async function loadUserData(firebaseUser) {
+    user.value = firebaseUser // 로그인/로그아웃 시 user 상태 갱신
+    if (!firebaseUser) {
+      calendarName.value = ''
+      photoURL.value = ''
+      localStorage.removeItem('calendarName')
+      localStorage.removeItem('photoURL')
+      return
+    }
+    const data = await fetchUserData(firebaseUser.uid)
+    calendarName.value = data.calendarName || ''
+    photoURL.value = data.photoURL || ''
+    localStorage.setItem('calendarName', calendarName.value)
+    localStorage.setItem('photoURL', photoURL.value)
+  }
+
+  return { user, nickname, calendarName, photoURL, loadUserData }
+})
