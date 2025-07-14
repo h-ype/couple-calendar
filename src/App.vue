@@ -1,5 +1,4 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
 import Header from './components/Header.vue'
 import Calendar from './components/Calendar.vue' 
 import { onMounted } from 'vue'
