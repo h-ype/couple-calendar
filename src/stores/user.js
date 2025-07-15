@@ -16,7 +16,7 @@ async function fetchUserData(uid) {
 export const useUserStore = defineStore('user', () => {
   const user = ref(null) // 추가
   const nickname = ref('')
-  const calendarName = ref(localStorage.getItem('calendarName') || '')
+  const calendarName = ref(localStorage.getItem('calendarName') || '내 캘린더')
   const photoURL = ref(localStorage.getItem('photoURL') || '')
 
   async function loadUserData(firebaseUser) {

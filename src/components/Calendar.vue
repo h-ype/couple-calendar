@@ -1,46 +1,49 @@
 <template>
+
+  <div class="couple-status" v-if="loading">
+    <span>상태 확인 중...</span>
+  </div>
+  <div class="couple-status" v-else>
+    <template v-if="couple">
+      <span>💞 {{ couple.email }} 님과 연결됨</span>
+      <button @click="disconnectCouple">연결 해제</button>
+    </template>
+    <template v-else>
+      <span>커플을 초대하고 일정을 공유해보세요. <button @click="goInvite">초대하기</button></span>
+    </template>
+  </div>
+
   <div class="calendar">
-    <header>
-      <button @click="prevMonth">‹</button>
-      <h2>{{ year }}년 {{ month + 1 }}월</h2>
-      <button @click="nextMonth">›</button>
-    </header>
-
-    <div class="couple-status" v-if="loading">
-      <span>상태 확인 중...</span>
-    </div>
-    <div class="couple-status" v-else>
-      <template v-if="couple">
-        <span>💞 {{ couple.email }} 님과 연결됨</span>
-        <button @click="disconnectCouple">연결 해제</button>
-      </template>
-      <template v-else>
-        <span>아직 커플이 아니에요! <button @click="goInvite">초대하기</button></span>
-      </template>
-    </div>
-
-    <div class="weekdays">
-      <div v-for="day in weekdays" :key="day" class="weekday">{{ day }}</div>
-    </div>
-    <div class="dates">
-      <div v-for="blank in blanks" :key="'blank-' + blank" class="date blank"></div>
-      <div
-        v-for="date in daysInMonth"
-        :key="date"
-        class="date"
-        :class="{ today: isToday(date), selected: isSelectedDate(date) }"
-        @click="onDateCellClick(date)"
-      >
-        <div class="date-number">{{ date }}</div>
-        <div class="bullets">
-          <span
-            v-for="n in Math.min(getSchedulesForDate(year, month, date).length, 3)"
-            :key="n"
-            class="bullet"
-          >●</span>
+    <div class="inner">
+      <header>
+        <button @click="prevMonth">‹</button>
+        <h4>{{ year }}. {{ month + 1 }}.</h4>
+        <button @click="nextMonth">›</button>
+      </header>
+      <div class="weekdays">
+        <div v-for="day in weekdays" :key="day" class="weekday">{{ day }}</div>
+      </div>
+      <div class="dates">
+        <div v-for="blank in blanks" :key="'blank-' + blank" class="date blank"></div>
+        <div
+          v-for="date in daysInMonth"
+          :key="date"
+          class="date"
+          :class="{ today: isToday(date), selected: isSelectedDate(date) }"
+          @click="onDateCellClick(date)"
+        >
+          <div class="date-number">{{ date }}</div>
+          <div class="bullets">
+            <span
+              v-for="n in Math.min(getSchedulesForDate(year, month, date).length, 3)"
+              :key="n"
+              class="bullet"
+            >●</span>
+          </div>
         </div>
       </div>
     </div>
+    
 
     <!-- 일정 상세 리스트: 날짜 셀 클릭 시만 노출 -->
     <div v-if="showDetailList" class="schedule-detail-list">
@@ -228,7 +231,7 @@ async function saveSchedule(schedule) {
     owner: user.value.uid,
     ownerEmail: user.value.email,
     date: schedule.date,
-    time: schedule.time 
+    time: schedule.time ?? null  // undefined면 null로 처리
   }
   if (editingSchedule.value) {
     // 수정
@@ -335,114 +338,3 @@ function goInvite() {
   router.push('/mypage/invite')
 }
 </script>
-
-<style scoped>
-.calendar {
-  width: 100%;
-  margin: auto;
-  font-family: 'Noto Sans KR', sans-serif;
-}
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-.weekdays, .dates {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-}
-.weekday, .date {
-  text-align: center;
-  padding: 8px 0;
-}
-.blank {
-  background: #f0f0f0;
-}
-.today {
-  background: #4caf50;
-  color: white;
-  border-radius: 50%;
-}
-.selected {
-  border: 2px solid #4caf50;
-  border-radius: 10px;
-}
-button {
-  cursor: pointer;
-  background: none;
-  border: none;
-  font-size: 20px;
-}
-.bullet {
-  font-size: 1.2rem;
-  color: #4caf50;
-  margin-top: 2px;
-}
-.couple-status {
-  margin-bottom: 10px;
-  font-size: 0.95rem;
-  color: #444;
-}
-.schedule-detail-list {
-  margin: 20px 0 0 0;
-  padding: 16px;
-  background: #f7f7f7;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-.schedule-detail-list h4 {
-  margin: 0 0 10px 0;
-  font-size: 1.1em;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.schedule-detail-list ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.schedule-detail-list li {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
-  background: #fff;
-  padding: 8px 10px;
-  border-radius: 6px;
-}
-.sch-title {
-  font-weight: 500;
-}
-.sch-time {
-  font-size: 0.9em;
-  color: #888;
-}
-.edit-btn, .delete-btn {
-  font-size: 0.85em;
-  margin-left: 4px;
-  cursor: pointer;
-  background: #eee;
-  border-radius: 4px;
-  padding: 2px 7px;
-  border: none;
-}
-.add-btn {
-  margin-top: 10px;
-  background: #4caf50;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 16px;
-  cursor: pointer;
-  font-size: 1em;
-}
-.close-detail {
-  font-size: 1.1em;
-  background: none;
-  border: none;
-  color: #888;
-  cursor: pointer;
-}
-</style>

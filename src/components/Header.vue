@@ -1,7 +1,7 @@
 <template>
   <header class="header">
 
-    <div class="logo" @click="goMain">{{ userStore.calendarName }}</div>
+    <div class="logo" @click="goMain">{{ userStore.calendarName || "내 캘린더" }}</div>
 
      <div>
     <button v-if="!userStore.user" @click="goLogin">로그인</button>
@@ -45,41 +45,4 @@ function goMyPage() {
 </script>
 
 <style scoped>
-.header {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem 1rem;
-  box-sizing: border-box;
-  background-color: #f8f8f8;
-  box-shadow: 0 2px 4px rgb(0 0 0 / 0.1);
-}
-
-.menu-btn {
-  font-size: 1.5rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-.logo {
-  font-weight: bold;
-  font-size: 1.2rem;
-}
-
-.mypage {
-  cursor: pointer;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
-}
-
-.mypage-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
 </style>
